@@ -1,0 +1,15 @@
+{
+  "id": "Zen-Workspace-Scroller",
+  "name": "Zen Workspace Scroller",
+  "description": "Keeps Zen workspace switcher inside a fixed horizontal scroll container.",
+  "version": "1.0.0",
+  "author": "YS",
+  "style": {
+    "chrome": "userChrome.css",
+    "content": ""
+  },
+  "readme": "README.md",
+  "ai": "yes",
+  "tags": ["chrome", "workspaces", "sidebar"],
+  "fork": ["zen"]
+}

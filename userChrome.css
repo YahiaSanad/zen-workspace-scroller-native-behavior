@@ -1,0 +1,58 @@
+/*
+ * Zen Workspace Scroller
+ * Load after Arc 2.0. Keeps workspace icons inside the sidebar width.
+ */
+
+#zen-sidebar-foot-buttons {
+  box-sizing: border-box !important;
+  inline-size: 100% !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+}
+
+#zen-workspaces-button {
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap !important;
+  inline-size: 100% !important;
+  column-gap: 3px !important;
+  justify-content: flex-start !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  scroll-behavior: smooth !important;
+  white-space: nowrap !important;
+}
+
+#zen-workspaces-button > toolbarbutton[zen-workspace-id] {
+  flex: 0 0 auto !important;
+  inline-size: revert !important;
+  max-inline-size: revert !important;
+  max-width: revert !important;
+  min-inline-size: 26px !important;
+  min-width: 26px !important;
+  width: revert !important;
+}
+
+@media (-moz-pref("arc-workspace-style", 0)) {
+  #zen-workspaces-button {
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
+
+@media (-moz-pref("arc-workspace-style", 2)) {
+  #zen-workspaces-button {
+    inline-size: 100% !important;
+    max-inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+}
