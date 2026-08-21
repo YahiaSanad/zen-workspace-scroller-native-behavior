@@ -2,7 +2,7 @@
   "id": "Zen-Workspace-Native-Arc",
   "name": "Zen Workspace Native Arc",
   "description": "Restores Zen native workspace sizing while preserving Arc 2.0 styling.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "author": "YS",
   "homepage": "https://github.com/YahiaSanad/Zen-Workspace-Scroller/tree/native-arc",
   "style": {

@@ -56,36 +56,22 @@
 
 @media (-moz-pref("arc-workspace-style", 0)),
   (-moz-pref("arc-workspace-style", 2)) {
-  #zen-workspaces-button .subviewbutton:hover,
-  #zen-workspaces-button .subviewbutton:active:hover,
-  #zen-workspaces-button .subviewbutton:hover + .subviewbutton,
-  #zen-workspaces-button .subviewbutton:has(+ .subviewbutton:hover),
-  #zen-workspaces-button .subviewbutton:hover + .subviewbutton + .subviewbutton,
-  #zen-workspaces-button
-    .subviewbutton:has(+ .subviewbutton + .subviewbutton:hover) {
-    opacity: unset !important;
-    transform: scale(1) !important;
-    z-index: auto !important;
+  #zen-workspaces-button .subviewbutton {
+    color: transparent !important;
   }
 
-  #zen-workspaces-button .subviewbutton,
   #zen-workspaces-button .subviewbutton:hover,
   #zen-workspaces-button .subviewbutton[active] {
     color: inherit !important;
   }
 
-  #zen-workspaces-button .subviewbutton > .toolbarbutton-icon,
-  #zen-workspaces-button .subviewbutton > .toolbarbutton-text,
-  #zen-workspaces-button .subviewbutton > image,
-  #zen-workspaces-button .subviewbutton > img,
-  #zen-workspaces-button .subviewbutton > svg {
+  #zen-workspaces-button .subviewbutton::before {
+    content: "\2022" !important;
     opacity: 1 !important;
   }
 
-  #zen-workspaces-button .subviewbutton::before,
   #zen-workspaces-button .subviewbutton:hover::before,
   #zen-workspaces-button .subviewbutton[active]::before {
-    content: none !important;
     opacity: 0 !important;
   }
 }
