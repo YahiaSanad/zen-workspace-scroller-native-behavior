@@ -160,10 +160,13 @@
         #zen-workspaces-button > toolbarbutton[zen-workspace-id] {
           flex: 0 1 auto !important;
           flex-shrink: 1 !important;
+          inline-size: var(--wna-workspace-button-width, 32px) !important;
           max-inline-size: 32px !important;
           max-width: 32px !important;
           min-inline-size: 0 !important;
           min-width: 0 !important;
+          position: relative !important;
+          width: var(--wna-workspace-button-width, 32px) !important;
         }
 
         @media (-moz-pref("arc-workspace-style", 0)) {
@@ -174,6 +177,11 @@
             overflow: hidden !important;
             width: 0 !important;
           }
+
+          #zen-workspaces-button .subviewbutton,
+          #zen-workspaces-button .subviewbutton[active] {
+            position: relative !important;
+          }
         }
 
         @media (-moz-pref("arc-workspace-style", 2)) {
@@ -183,6 +191,11 @@
             inline-size: 0 !important;
             overflow: hidden !important;
             width: 0 !important;
+          }
+
+          #zen-workspaces-button .subviewbutton,
+          #zen-workspaces-button .subviewbutton[active] {
+            position: relative !important;
           }
         }
       `;
@@ -216,13 +229,29 @@
         buttons.length * (MIN_BUTTON_SIZE + SEPARATION) > available;
 
       for (const button of buttons) {
+        button.style.setProperty(
+          "--wna-workspace-button-width",
+          `${buttonWidth}px`,
+        );
+        button.style.setProperty(
+          "inline-size",
+          `${buttonWidth}px`,
+          "important",
+        );
         button.style.setProperty("width", `${buttonWidth}px`, "important");
+        button.style.setProperty(
+          "max-inline-size",
+          `${MAX_BUTTON_SIZE}px`,
+          "important",
+        );
         button.style.setProperty(
           "max-width",
           `${MAX_BUTTON_SIZE}px`,
           "important",
         );
+        button.style.setProperty("min-inline-size", "0", "important");
         button.style.setProperty("min-width", "0", "important");
+        button.style.setProperty("position", "relative", "important");
       }
 
       if (overflow) {
