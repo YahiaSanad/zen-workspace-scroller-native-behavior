@@ -1,16 +1,16 @@
 {
-  "id": "Zen-Workspace-Scroller",
-  "name": "Zen Workspace Scroller",
-  "description": "Keeps Zen workspace switcher inside a fixed horizontal scroll container.",
-  "version": "1.2.1",
+  "id": "Zen-Workspace-Native-Arc",
+  "name": "Zen Workspace Native Arc",
+  "description": "Restores Zen native workspace sizing while preserving Arc 2.0 styling.",
+  "version": "1.0.0",
   "author": "YS",
-  "homepage": "https://github.com/YahiaSanad/Zen-Workspace-Scroller",
+  "homepage": "https://github.com/YahiaSanad/Zen-Workspace-Scroller/tree/native-arc",
   "style": {
     "chrome": "userChrome.css",
     "content": ""
   },
   "scripts": {
-    "workspace-scroller.uc.js": {
+    "workspace-native-arc.uc.js": {
       "include": ["chrome://browser/content/browser.xhtml"],
       "loadOrder": 1
     }

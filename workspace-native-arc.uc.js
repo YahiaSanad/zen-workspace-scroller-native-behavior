@@ -1,6 +1,9 @@
 (() => {
-  const STYLE_ID = "zen-workspace-scroller-js-style";
-  const LOG_FILE = "wss-debug.log";
+  const STYLE_ID = "zen-workspace-native-arc-style";
+  const LOG_FILE = "wna-debug.log";
+  const MAX_BUTTON_SIZE = 32;
+  const MIN_BUTTON_SIZE = 16;
+  const SEPARATION = 3;
 
   function writeDebugLine(line) {
     try {
@@ -24,9 +27,7 @@
     }
   }
 
-  writeDebugLine(`[WSS ${new Date().toISOString()}] top-level\n`);
-
-  class WorkspaceScroller {
+  class WorkspaceNativeArc {
     constructor(windowRef) {
       this.window = windowRef;
       this.document = windowRef.document;
@@ -34,11 +35,10 @@
       this.foot = null;
       this.abortController = new AbortController();
       this.childObserver = null;
-      this.activeObserver = null;
       this.resizeObserver = null;
-      this.styleElement = null;
       this.checkQueued = false;
       this.lastState = "";
+      this.styleElement = null;
     }
 
     init() {
@@ -67,26 +67,14 @@
 
     start() {
       const signal = this.abortController.signal;
-      this.window.__wssLoaded = true;
+      this.window.__workspaceNativeArcLoaded = true;
       this.installStyle();
       this.log("loaded", { strip: !!this.strip, foot: !!this.foot });
 
-      this.childObserver = new this.window.MutationObserver(() => this.check());
+      this.childObserver = new this.window.MutationObserver(() =>
+        this.scheduleCheck(),
+      );
       this.childObserver.observe(this.strip, { childList: true });
-
-      this.activeObserver = new this.window.MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-          if (mutation.attributeName === "active") {
-            this.scrollActiveIntoView(true);
-            break;
-          }
-        }
-      });
-      this.activeObserver.observe(this.strip, {
-        attributes: true,
-        attributeFilter: ["active"],
-        subtree: true,
-      });
 
       this.resizeObserver = new this.window.ResizeObserver(() =>
         this.scheduleCheck(),
@@ -106,27 +94,23 @@
         },
       );
 
-      this.strip.addEventListener("wheel", (event) => this.onWheel(event), {
-        passive: false,
-        signal,
-      });
-
       this.check();
     }
 
     destroy() {
       this.abortController.abort();
       this.childObserver?.disconnect();
-      this.activeObserver?.disconnect();
       this.resizeObserver?.disconnect();
-      if (this.strip) {
-        this.strip.removeAttribute("wss-scroll");
-        this.strip.style.removeProperty("max-width");
-      }
       this.styleElement?.remove();
-      this.styleElement = null;
+      for (const button of this.buttons()) {
+        button.style.removeProperty("width");
+        button.style.removeProperty("min-width");
+        button.style.removeProperty("max-width");
+      }
+      this.strip?.removeAttribute("icons-overflow");
       this.strip = null;
       this.foot = null;
+      this.styleElement = null;
     }
 
     installStyle() {
@@ -140,44 +124,46 @@
           inline-size: 100% !important;
           max-inline-size: 100% !important;
           min-inline-size: 0 !important;
+          min-width: 0 !important;
           overflow: hidden !important;
           width: 100% !important;
           max-width: 100% !important;
-          min-width: 0 !important;
         }
 
         #zen-workspaces-button {
           box-sizing: border-box !important;
+          container-type: inline-size !important;
           display: flex !important;
           flex: 1 1 0 !important;
           flex-basis: 0 !important;
           flex-wrap: nowrap !important;
+          gap: 3px !important;
           inline-size: 0 !important;
-          width: 0 !important;
+          justify-content: center !important;
           max-inline-size: 100% !important;
           max-width: 100% !important;
           min-inline-size: 0 !important;
           min-width: 0 !important;
-          overflow-x: auto !important;
+          overflow: hidden !important;
+          overflow-x: hidden !important;
           overflow-y: hidden !important;
           scrollbar-width: none !important;
           white-space: nowrap !important;
+          width: 0 !important;
+        }
+
+        #zen-workspaces-button[icons-overflow] {
+          gap: 0 !important;
+          justify-content: safe center !important;
         }
 
         #zen-workspaces-button > toolbarbutton[zen-workspace-id] {
-          flex: 0 0 auto !important;
-          flex-shrink: 0 !important;
-          inline-size: revert !important;
-          max-inline-size: revert !important;
-          max-width: revert !important;
-          min-inline-size: 26px !important;
-          min-width: 26px !important;
-          width: revert !important;
-        }
-
-        #zen-workspaces-button[wss-scroll] {
-          justify-content: flex-start !important;
-          scroll-behavior: smooth !important;
+          flex: 0 1 auto !important;
+          flex-shrink: 1 !important;
+          max-inline-size: 32px !important;
+          max-width: 32px !important;
+          min-inline-size: 0 !important;
+          min-width: 0 !important;
         }
 
         @media (-moz-pref("arc-workspace-style", 0)) {
@@ -185,9 +171,8 @@
             flex: 1 1 0 !important;
             flex-basis: 0 !important;
             inline-size: 0 !important;
+            overflow: hidden !important;
             width: 0 !important;
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
           }
         }
 
@@ -196,9 +181,8 @@
             flex: 1 1 0 !important;
             flex-basis: 0 !important;
             inline-size: 0 !important;
+            overflow: hidden !important;
             width: 0 !important;
-            overflow-x: auto !important;
-            overflow-y: hidden !important;
           }
         }
       `;
@@ -218,40 +202,42 @@
 
     check() {
       const buttons = this.buttons();
-      if (!buttons.length || !this.foot) {
-        this.clearOverflow();
+      if (!buttons.length) {
         return;
       }
 
-      const needed = this.neededWidth(buttons);
       const available = this.availableWidth();
-      const overflow = buttons.length > 1 && needed > available + 1;
+      const widthPerButton = Math.max(
+        (available - SEPARATION * (buttons.length - 1)) / buttons.length,
+        MIN_BUTTON_SIZE,
+      );
+      const buttonWidth = Math.min(widthPerButton, MAX_BUTTON_SIZE);
+      const overflow =
+        buttons.length * (MIN_BUTTON_SIZE + SEPARATION) > available;
 
-      if (available > 0) {
-        this.strip.style.maxWidth = `${Math.floor(available)}px`;
+      for (const button of buttons) {
+        button.style.setProperty("width", `${buttonWidth}px`, "important");
+        button.style.setProperty(
+          "max-width",
+          `${MAX_BUTTON_SIZE}px`,
+          "important",
+        );
+        button.style.setProperty("min-width", "0", "important");
       }
 
       if (overflow) {
-        this.strip.setAttribute("wss-scroll", "true");
+        this.strip.setAttribute("icons-overflow", "true");
       } else {
-        this.strip.removeAttribute("wss-scroll");
+        this.strip.removeAttribute("icons-overflow");
       }
 
-      const state = `n=${buttons.length} needed=${needed.toFixed(0)} avail=${available.toFixed(
-        0,
-      )} scroll=${overflow}`;
+      const state = `n=${buttons.length} avail=${available.toFixed(0)} width=${buttonWidth.toFixed(
+        1,
+      )} overflow=${overflow}`;
       if (state !== this.lastState) {
         this.lastState = state;
         this.log(state);
       }
-    }
-
-    clearOverflow() {
-      if (!this.strip) {
-        return;
-      }
-      this.strip.removeAttribute("wss-scroll");
-      this.strip.style.removeProperty("max-width");
     }
 
     buttons() {
@@ -260,31 +246,19 @@
       ];
     }
 
-    neededWidth(buttons) {
-      const styles = this.window.getComputedStyle(this.strip);
-      const gap = this.cssPx(styles.columnGap);
-      let total =
-        gap * (buttons.length - 1) +
-        this.cssPx(styles.paddingLeft) +
-        this.cssPx(styles.paddingRight);
-
-      for (const button of buttons) {
-        total += button.getBoundingClientRect().width;
-      }
-
-      return total;
-    }
-
     availableWidth() {
-      const styles = this.window.getComputedStyle(this.foot);
+      if (!this.strip || !this.foot) {
+        return 0;
+      }
+      const footStyles = this.window.getComputedStyle(this.foot);
       const siblings = [...this.foot.children].filter(
         (child) => child !== this.strip && !child.hidden,
       );
-      const gap = this.cssPx(styles.columnGap);
+      const gap = this.cssPx(footStyles.columnGap);
       let available =
         this.foot.clientWidth -
-        this.cssPx(styles.paddingLeft) -
-        this.cssPx(styles.paddingRight) -
+        this.cssPx(footStyles.paddingLeft) -
+        this.cssPx(footStyles.paddingRight) -
         gap * siblings.length;
 
       for (const sibling of siblings) {
@@ -299,36 +273,8 @@
       return Number.isFinite(number) ? number : 0;
     }
 
-    onWheel(event) {
-      if (!this.strip.hasAttribute("wss-scroll")) {
-        return;
-      }
-      const delta =
-        Math.abs(event.deltaX) > Math.abs(event.deltaY)
-          ? event.deltaX
-          : event.deltaY;
-      if (!delta) {
-        return;
-      }
-      event.preventDefault();
-      event.stopPropagation();
-      this.strip.scrollLeft += delta;
-    }
-
-    scrollActiveIntoView(smooth) {
-      if (!this.strip.hasAttribute("wss-scroll")) {
-        return;
-      }
-      const active = this.strip.querySelector('toolbarbutton[active="true"]');
-      active?.scrollIntoView({
-        behavior: smooth ? "smooth" : "auto",
-        inline: "nearest",
-        block: "nearest",
-      });
-    }
-
     log(message, data = null) {
-      const line = `[WSS ${new Date().toISOString()}] ${message}${
+      const line = `[WNA ${new Date().toISOString()}] ${message}${
         data ? " " + JSON.stringify(data) : ""
       }\n`;
       this.window.console.log(line.trim());
@@ -336,17 +282,19 @@
     }
   }
 
-  window.__workspaceScroller?.destroy();
-  window.__workspaceScroller = new WorkspaceScroller(window);
-  window.__workspaceScroller.init();
+  window.__workspaceNativeArc?.destroy();
+  window.__workspaceNativeArc = new WorkspaceNativeArc(window);
+  window.__workspaceNativeArc.init();
 
   if (typeof window.addUnloadListener === "function") {
-    window.addUnloadListener(() => window.__workspaceScroller?.destroy());
+    window.addUnloadListener(() => window.__workspaceNativeArc?.destroy());
   } else {
     window.addEventListener(
       "unload",
-      () => window.__workspaceScroller?.destroy(),
-      { once: true },
+      () => window.__workspaceNativeArc?.destroy(),
+      {
+        once: true,
+      },
     );
   }
 })();
