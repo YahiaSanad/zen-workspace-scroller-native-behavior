@@ -1,34 +1,46 @@
 /*
  * Zen Workspace Scroller
  * Load after Arc 2.0. Keeps workspace icons inside the sidebar width.
+ * The [wss-scroll] attribute is toggled by workspace-scroller.uc.js
+ * when the icons no longer fit (same fit-check stock Zen does in
+ * ZenSpaceManager.mjs onWindowResize).
  */
 
+/* Footer row: never let the strip push it wider. */
 #zen-sidebar-foot-buttons {
   box-sizing: border-box !important;
   inline-size: 100% !important;
   max-inline-size: 100% !important;
   min-inline-size: 0 !important;
+  overflow: hidden !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
 }
 
+/* Spaces strip: flex item must start at 0, then grow into available sidebar width. */
 #zen-workspaces-button {
   box-sizing: border-box !important;
   display: flex !important;
-  flex: 1 1 auto !important;
+  flex: 1 1 0 !important;
+  flex-basis: 0 !important;
   flex-wrap: nowrap !important;
-  inline-size: 100% !important;
-  column-gap: 3px !important;
-  justify-content: flex-start !important;
+  inline-size: 0 !important;
+  width: 0 !important;
   max-inline-size: 100% !important;
+  max-width: 100% !important;
   min-inline-size: 0 !important;
+  min-width: 0 !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   scrollbar-width: none !important;
-  scroll-behavior: smooth !important;
   white-space: nowrap !important;
 }
 
+/* Space buttons keep their natural size; overflow scrolls instead. */
 #zen-workspaces-button > toolbarbutton[zen-workspace-id] {
   flex: 0 0 auto !important;
+  flex-shrink: 0 !important;
   inline-size: revert !important;
   max-inline-size: revert !important;
   max-width: revert !important;
@@ -37,11 +49,22 @@
   width: revert !important;
 }
 
+/*
+ * Overflow state (set by JS when icons exceed available width).
+ * Centered justify-content clips scrollable content at the start edge,
+ * so switch to flex-start while scrolling.
+ */
+#zen-workspaces-button[wss-scroll] {
+  justify-content: flex-start !important;
+  scroll-behavior: smooth !important;
+}
+
 @media (-moz-pref("arc-workspace-style", 0)) {
   #zen-workspaces-button {
-    inline-size: 100% !important;
-    max-inline-size: 100% !important;
-    min-inline-size: 0 !important;
+    flex: 1 1 0 !important;
+    flex-basis: 0 !important;
+    inline-size: 0 !important;
+    width: 0 !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
   }
@@ -49,9 +72,10 @@
 
 @media (-moz-pref("arc-workspace-style", 2)) {
   #zen-workspaces-button {
-    inline-size: 100% !important;
-    max-inline-size: 100% !important;
-    min-inline-size: 0 !important;
+    flex: 1 1 0 !important;
+    flex-basis: 0 !important;
+    inline-size: 0 !important;
+    width: 0 !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
   }
