@@ -54,6 +54,31 @@
   width: var(--wna-workspace-button-width, 32px) !important;
 }
 
+@media (-moz-pref("arc-workspace-style", 0)),
+  (-moz-pref("arc-workspace-style", 2)) {
+  #zen-workspaces-button .subviewbutton:hover,
+  #zen-workspaces-button .subviewbutton:active:hover,
+  #zen-workspaces-button .subviewbutton:hover + .subviewbutton,
+  #zen-workspaces-button .subviewbutton:has(+ .subviewbutton:hover),
+  #zen-workspaces-button .subviewbutton:hover + .subviewbutton + .subviewbutton,
+  #zen-workspaces-button
+    .subviewbutton:has(+ .subviewbutton + .subviewbutton:hover) {
+    opacity: unset !important;
+    transform: scale(1) !important;
+    z-index: auto !important;
+  }
+
+  #zen-workspaces-button .subviewbutton:hover,
+  #zen-workspaces-button .subviewbutton[active] {
+    color: transparent !important;
+  }
+
+  #zen-workspaces-button .subviewbutton:hover::before,
+  #zen-workspaces-button .subviewbutton[active]::before {
+    opacity: 1 !important;
+  }
+}
+
 @media (-moz-pref("arc-workspace-style", 0)) {
   #zen-workspaces-button {
     flex: 1 1 0 !important;

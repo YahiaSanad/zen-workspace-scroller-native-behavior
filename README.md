@@ -16,6 +16,8 @@ button is resized by the same fit-based logic Zen uses in
 - Arc's fixed/non-shrinking button rules are overridden.
 - Space buttons resize between Zen-style minimum and maximum sizes.
 - Adding Spaces does not make the sidebar grow.
+- Arc's style 0/style 2 dot indicators stay dots on hover instead of
+  expanding into the Space icon.
 
 ## Source Evidence
 
