@@ -4,6 +4,7 @@
   const MAX_BUTTON_SIZE = 32;
   const MIN_BUTTON_SIZE = 16;
   const SEPARATION = 3;
+  const FALLBACK_AVAILABLE_WIDTH = 162;
 
   function writeDebugLine(line) {
     try {
@@ -38,6 +39,8 @@
       this.resizeObserver = null;
       this.checkQueued = false;
       this.lastState = "";
+      this.lastAvailableWidth = 0;
+      this.lastAvailableSource = "";
       this.styleElement = null;
     }
 
@@ -125,9 +128,14 @@
           max-inline-size: 100% !important;
           min-inline-size: 0 !important;
           min-width: 0 !important;
-          overflow: hidden !important;
+          overflow: visible !important;
           width: 100% !important;
           max-width: 100% !important;
+        }
+
+        #zen-library-button:hover,
+        #zen-create-new-button:hover {
+          z-index: 5 !important;
         }
 
         #zen-workspaces-button {
@@ -153,7 +161,7 @@
         }
 
         #zen-workspaces-button[icons-overflow] {
-          gap: 0 !important;
+          gap: 3px !important;
           justify-content: safe center !important;
         }
 
@@ -240,7 +248,7 @@
         return;
       }
 
-      const available = this.availableWidth();
+      const available = Math.max(this.availableWidth(), MIN_BUTTON_SIZE);
       const widthPerButton = Math.max(
         (available - SEPARATION * (buttons.length - 1)) / buttons.length,
         MIN_BUTTON_SIZE,
@@ -281,7 +289,7 @@
         this.strip.removeAttribute("icons-overflow");
       }
 
-      const state = `n=${buttons.length} avail=${available.toFixed(0)} width=${buttonWidth.toFixed(
+      const state = `n=${buttons.length} avail=${available.toFixed(0)} source=${this.lastAvailableSource} width=${buttonWidth.toFixed(
         1,
       )} overflow=${overflow}`;
       if (state !== this.lastState) {
@@ -298,24 +306,77 @@
 
     availableWidth() {
       if (!this.strip || !this.foot) {
-        return 0;
+        return this.fallbackWidth("missing");
       }
       const footStyles = this.window.getComputedStyle(this.foot);
       const siblings = [...this.foot.children].filter(
         (child) => child !== this.strip && !child.hidden,
       );
       const gap = this.cssPx(footStyles.columnGap);
-      let available =
-        this.foot.clientWidth -
-        this.cssPx(footStyles.paddingLeft) -
-        this.cssPx(footStyles.paddingRight) -
-        gap * siblings.length;
+      const measuredFoot = this.elementWidth(this.foot);
+      const measuredAncestor = measuredFoot > 0 ? 0 : this.ancestorWidth();
+      const footWidth = measuredFoot || measuredAncestor;
 
-      for (const sibling of siblings) {
-        available -= sibling.getBoundingClientRect().width;
+      if (footWidth > 0) {
+        let available =
+          footWidth -
+          this.cssPx(footStyles.paddingLeft) -
+          this.cssPx(footStyles.paddingRight) -
+          gap * siblings.length;
+
+        for (const sibling of siblings) {
+          available -= this.elementWidth(sibling);
+        }
+
+        if (available > 0) {
+          this.lastAvailableSource = measuredFoot > 0 ? "foot" : "ancestor";
+          this.lastAvailableWidth = available;
+          return available;
+        }
       }
 
-      return Math.max(0, available);
+      const stripWidth = this.elementWidth(this.strip);
+      if (stripWidth > 0) {
+        this.lastAvailableSource = "strip";
+        this.lastAvailableWidth = stripWidth;
+        return stripWidth;
+      }
+
+      return this.fallbackWidth("fallback");
+    }
+
+    fallbackWidth(source) {
+      this.lastAvailableSource = source;
+      return this.lastAvailableWidth || FALLBACK_AVAILABLE_WIDTH;
+    }
+
+    ancestorWidth() {
+      for (
+        let element = this.foot?.parentElement;
+        element;
+        element = element.parentElement
+      ) {
+        const width = this.elementWidth(element);
+        if (width > 0 && width < 800) {
+          return width;
+        }
+      }
+      return 0;
+    }
+
+    elementWidth(element) {
+      if (!element) {
+        return 0;
+      }
+      const rectWidth = element.getBoundingClientRect?.().width || 0;
+      const styles = this.window.getComputedStyle(element);
+      const cssWidth = this.cssPx(styles.width);
+      return Math.max(
+        rectWidth,
+        element.clientWidth || 0,
+        element.offsetWidth || 0,
+        cssWidth,
+      );
     }
 
     cssPx(value) {

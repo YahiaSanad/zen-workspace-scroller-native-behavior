@@ -18,6 +18,11 @@ button is resized by the same fit-based logic Zen uses in
 - Adding Spaces does not make the sidebar grow.
 - Arc's style 0/style 2 hover animation stays intact: inactive spaces show
   dots, the active space shows its icon, and hovered spaces reveal their icons.
+- Zen's footer Library button remains visible on hover because the workspace
+  fix no longer rewrites the footer's display model.
+- Footer width is measured through `getBoundingClientRect()` with ancestor and
+  safe-width fallback for newer Zen builds where XUL `clientWidth` can report
+  `0` during startup.
 
 ## Source Evidence
 

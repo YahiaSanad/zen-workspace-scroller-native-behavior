@@ -10,9 +10,14 @@
   max-inline-size: 100% !important;
   min-inline-size: 0 !important;
   min-width: 0 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   width: 100% !important;
   max-width: 100% !important;
+}
+
+#zen-library-button:hover,
+#zen-create-new-button:hover {
+  z-index: 5 !important;
 }
 
 #zen-workspaces-button {
@@ -38,7 +43,7 @@
 }
 
 #zen-workspaces-button[icons-overflow] {
-  gap: 0 !important;
+  gap: 3px !important;
   justify-content: safe center !important;
 }
 
