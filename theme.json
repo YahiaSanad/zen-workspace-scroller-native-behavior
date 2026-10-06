@@ -4,7 +4,7 @@
   "description": "Restores Zen native workspace sizing while preserving Arc 2.0 styling.",
   "version": "1.0.7",
   "author": "YS",
-  "homepage": "https://github.com/YahiaSanad/Zen-Workspace-Scroller/tree/native-arc",
+  "homepage": "https://github.com/YahiaSanad/zen-workspace-scroller-native-behavior",
   "style": {
     "chrome": "userChrome.css",
     "content": ""
